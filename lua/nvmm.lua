@@ -26,14 +26,22 @@ M.setup()
 local line_count   = 2
 local md     = vim.fn.expand("%")
 local csv    = ""
-local object = ""
+local subject = ""
 local ucmd   = vim.api.nvim_create_user_command
 local kmap   = vim.api.nvim_buf_set_keymap
 local nrm    = { noremap = true }
 
 ucmd("NVMMConfig", function() M.set() end, {})
 kmap(0, 'n', nvmm_options.mappings.config, ":NVMMConfig<cr>", nrm)
-ucmd("NVMMPreview", function() M.preview() end, {})
+ucmd("NVMMPreview", function() 
+  if not headers_table then 
+    print("[NVMM] Run config first with " .. 
+      nvmm_options.mappings.config)
+    do return end
+  else
+  M.preview() 
+  end
+end, {})
 kmap(0, 'n', nvmm_options.mappings.preview, ":NVMMPreview<cr>", nrm)
 ucmd("NVMMSendAll", function() 
   vim.fn.mkdir(nvmm_options.options.tmp_folder, "p")
@@ -116,27 +124,23 @@ end
 
 function M.cmpHeadersEntries(l)
   local file_content = M.storeMD(md)
-  mail_object = object
+  mail_subject = subject
   for n=1,#headers_table do
     file_content = file_content:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
-    mail_object = mail_object:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
+    mail_subject = mail_subject:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
   end
   return file_content
 end
 
 function M.preview()
-  if not header_table then 
-    print("[NVMM] Run config first with " .. 
-      nvmm_options.mappings.config)
-    do return end
-  end
   local file_content = M.storeMD(md)
-  mail_object = object
+  mail_subject = subject
   for n=1,#headers_table do
     file_content = file_content:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
-    mail_object = mail_object:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
+    mail_subject = mail_subject:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
   end
-  print("Object: " .. mail_object .. "\n")
+  print("SUBJECT: " .. mail_subject .. " \n \n")
+  print("MESSAGE: \n \n")
   print(file_content)
 end
 -- Ecrire un fichier MD avec les valeurs contenues dans une ligne :
@@ -171,7 +175,7 @@ function M.send()
   local c = [[neomutt ]] ..
   [[-e "set content_type=text/html" -e "set copy=no" ]].. 
   [[-F ]] .. nvmm_options.options.neomutt_config .. [[ ]] ..
-  [[-s ]] .. [["]] .. mail_object .. [[" ]] ..
+  [[-s ]] .. [["]] .. mail_subject .. [[" ]] ..
   [[-- "mailto:]] .. email .. [[" < ]] .. 
   nvmm_options.options.tmp_folder .. email .. [[.html]]
   -- TODO : write correct error format for qf
@@ -235,13 +239,14 @@ function M.set()
     end)
   if not csv then 
     print('[NVMM] No csv file entered.')
-    do return end end
+    do return end 
+  end
   headers_table = M.storeHeaders(M.readLine(csv,1))
   vim.ui.input({
-    prompt = "[NVMM] Object ? ",
+    prompt = "[NVMM] Subject ? ",
   }, 
     function(input)
-      object = input or " "
+      subject = input or " "
     end)
 end
 

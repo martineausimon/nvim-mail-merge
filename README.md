@@ -4,7 +4,7 @@
 
 ## Requirements
 
-This plugin requires [NeoMutt](https://github.com/neomutt) configured correctly.
+This plugin requires [pandoc](https://github.com/jgm/pandoc) and [NeoMutt](https://github.com/neomutt) configured correctly.
 
 ## Installation with config
 

@@ -4,6 +4,7 @@ local M = {}
 
 local default = {
   mappings = {
+    attachment = "<leader>a",
     config = "<leader>c",
     preview = "<leader>p",
     send_all = "<leader>sa"
@@ -33,21 +34,53 @@ local nrm    = { noremap = true }
 
 ucmd("NVMMConfig", function() M.set() end, {})
 kmap(0, 'n', nvmm_options.mappings.config, ":NVMMConfig<cr>", nrm)
+
 ucmd("NVMMPreview", function() 
   if not headers_table then 
     print("[NVMM] Run config first with " .. 
       nvmm_options.mappings.config)
     do return end
   else
-  M.preview() 
+    local screen_width, screen_height = vim.api.nvim_get_option("columns"), vim.api.nvim_get_option("lines")
+    local demi_screen_width = math.floor(screen_width / 2)
+    local demi_screen_height = math.floor(screen_height / 2)
+    local w_width = math.floor(screen_width / 1.2)
+    local w_height = math.floor(screen_height / 1.2)
+    local x = math.floor(demi_screen_width - w_width / 2)
+    local y = math.floor(demi_screen_height - w_height / 2)
+    local opts = {
+      relative = "win",
+      width = w_width,
+      height = w_height,
+      col = x,
+      row = y,
+      style = "minimal",
+      border = "single"
+    }
+    local preview_buf = vim.api.nvim_create_buf(false, true)
+    local lines = M.preview()
+    vim.api.nvim_buf_set_lines(preview_buf, 0, -1, true, lines) 
+    local preview_win = vim.api.nvim_open_win(preview_buf, true, opts)
   end
 end, {})
 kmap(0, 'n', nvmm_options.mappings.preview, ":NVMMPreview<cr>", nrm)
+
 ucmd("NVMMSendAll", function() 
   vim.fn.mkdir(nvmm_options.options.tmp_folder, "p")
   M.sendAll() 
 end, {})
 kmap(0, 'n', nvmm_options.mappings.send_all, ":NVMMSendAll<cr>", nrm)
+
+ucmd("NVMMAttachment", function()
+    vim.ui.input({
+    prompt = "[NVMM] Attachment ? ",
+    completion = "file"
+  }, 
+    function(input)
+      attachment = input or nil
+    end)
+end, {})
+kmap(0, 'n', nvmm_options.mappings.attachment, ":NVMMAttachment<cr>", nrm)
 
 -- Lire les valeurs d'une ligne et d'une colonne d'un fichier csv
 
@@ -128,21 +161,36 @@ function M.cmpHeadersEntries(l)
   for n=1,#headers_table do
     file_content = file_content:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
     mail_subject = mail_subject:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
+    if attachment then
+      attachment = attachment:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
+    end
   end
   return file_content
 end
 
+-- Previsualiser le mail
+
 function M.preview()
+  local lines = {}
   local file_content = M.storeMD(md)
-  mail_subject = subject
+  local mail_subject = subject
+  local att = attachment or "<empty>"
+  local email = M.readValues(csv,2,M.getMailPos(M.readLine(csv,1)))
   for n=1,#headers_table do
     file_content = file_content:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
     mail_subject = mail_subject:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
+    att = att:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
   end
-  print("SUBJECT: " .. mail_subject .. " \n \n")
-  print("MESSAGE: \n \n")
-  print(file_content)
+  table.insert(lines, "TO:         " .. email)
+  table.insert(lines, "SUBJECT:    " .. mail_subject)
+  table.insert(lines, "ATTACHMENT: " .. att)
+  table.insert(lines, "-------------------")
+  for line in string.gmatch(file_content, "[^\n]+") do
+    table.insert(lines, line)
+  end
+  return lines
 end
+
 -- Ecrire un fichier MD avec les valeurs contenues dans une ligne :
 
 function M.sendAll()
@@ -172,10 +220,15 @@ end
 -- Envoi complet :
 
 function M.send()
+  if attachment then
+    pj = [[-a ]] .. attachment .. [[ ]]
+  else 
+    pj = ""
+  end
   local c = [[neomutt ]] ..
   [[-e "set content_type=text/html" -e "set copy=no" ]].. 
   [[-F ]] .. nvmm_options.options.neomutt_config .. [[ ]] ..
-  [[-s ]] .. [["]] .. mail_subject .. [[" ]] ..
+  [[-s ]] .. [["]] .. mail_subject .. [[" ]] .. pj ..
   [[-- "mailto:]] .. email .. [[" < ]] .. 
   nvmm_options.options.tmp_folder .. email .. [[.html]]
   -- TODO : write correct error format for qf
@@ -230,6 +283,7 @@ end
 -- Définir le fichier csv et l'objet du mail
 
 function M.set()
+  vim.api.nvim_command("silent! write")
   vim.ui.input({
     prompt = "[NVMM] .csv file ? ",
     completion = "file"

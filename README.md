@@ -16,6 +16,7 @@ use { 'martineausimon/nvim-mail-merge',
   config = function()
     require('nvmm').setup({
       mappings = {
+        attachment = "<leader>a",
         config = "<leader>c",
         preview = "<leader>p",
         send_all = "<leader>sa"
@@ -65,10 +66,14 @@ Best regards,
 
 In NeoVim, run the command `:NVMMConfig` (default mapping `<leader>c`) and enter the exact path of the csv file, then the subject of the mail. The subject can contain variables, always preceded by the symbol `$`.
 
-### 4) Preview the sending
+### 4) Add attachment (optional)
+
+Run `:NVMMAttachment` (default mapping `<leader>a`) to add attachment to your mail. It can be a complete path (e.g. `/home/user/file.pdf`) or a variable, completed from your csv file content (e.g. : `$ATT`).
+
+### 5) Preview the sending
 
 The `:NVMMPreview` function (default mapping `<leader>p`) allows you to preview the sending with the data of the second line of the csv file.
 
-### 5) Send
+### 6) Send
 
 Run the function `:NVMMSendAll` (default mapping `<leader>sa`)

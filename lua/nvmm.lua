@@ -162,7 +162,7 @@ function M.cmpHeadersEntries(l)
     file_content = file_content:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
     mail_subject = mail_subject:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
     if attachment then
-      attachment = attachment:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
+      pj = attachment:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
     end
   end
   return file_content
@@ -220,15 +220,15 @@ end
 -- Envoi complet :
 
 function M.send()
-  if attachment then
-    pj = [[-a ]] .. attachment .. [[ ]]
+  if pj then
+    att = [[-a ]] .. pj .. [[ ]]
   else 
-    pj = ""
+    att = ""
   end
   local c = [[neomutt ]] ..
   [[-e "set content_type=text/html" -e "set copy=no" ]].. 
   [[-F ]] .. nvmm_options.options.neomutt_config .. [[ ]] ..
-  [[-s ]] .. [["]] .. mail_subject .. [[" ]] .. pj ..
+  [[-s ]] .. [["]] .. mail_subject .. [[" ]] .. att ..
   [[-- "mailto:]] .. email .. [[" < ]] .. 
   nvmm_options.options.tmp_folder .. email .. [[.html]]
   -- TODO : write correct error format for qf

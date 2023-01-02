@@ -184,10 +184,12 @@ function M.preview()
     mail_subject = mail_subject:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
     att = att:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
   end
+  table.insert(lines, "-------------------")
   table.insert(lines, "TO:         " .. email)
   table.insert(lines, "SUBJECT:    " .. mail_subject)
   table.insert(lines, "ATTACHMENT: " .. att)
   table.insert(lines, "-------------------")
+  table.insert(lines, " ")
   for line in string.gmatch(file_content, "[^\n]+") do
     table.insert(lines, line)
   end
@@ -314,10 +316,20 @@ function M.set()
     function(input)
       csv = input or nil
     end)
-  if not csv then 
+  local file = csv
+  if not file then 
+    vim.cmd[[redraw]]
     print('[NVMM] No csv file entered.')
-    do return end 
+    return
   end
+  local test_file = io.open(csv, "r")
+  if not test_file then
+    vim.cmd[[redraw]]
+    print("[NVMM] The file " .. csv .. " does not exist.")
+    return
+  end
+  io.close(test_file)
+
   headers_table = M.storeHeaders(M.readLine(csv,1))
   vim.ui.input({
     prompt = "[NVMM] Subject ? ",

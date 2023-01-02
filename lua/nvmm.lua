@@ -11,7 +11,10 @@ local default = {
   },
   options = {
     tmp_folder = "/tmp/nvmm/", 
-    neomutt_config = "$HOME/.neomuttrc"
+    neomutt_config = "$HOME/.neomuttrc",
+    save_log = true,
+    log_file = "./nvmm.log",
+    date_format = "%Y-%m-%d"
   }
 }
 
@@ -132,7 +135,7 @@ function M.storeHeaders(h)
   for header in string.gmatch(h, "([^,]+)") do
     headers_count = headers_count + 1
     headers[headers_count] = header
-    vim.fn.matchadd("SpecialChar", "$" .. header) 
+    vim.fn.matchadd("Identifier", "$" .. header) 
   end
   return headers
 end
@@ -234,8 +237,28 @@ function M.send()
   -- TODO : write correct error format for qf
   local e = " " 
   local ctrl = "send"
+  if nvmm_options.options.save_log then
+    local current_date = os.date(nvmm_options.options.date_format)
+    local log = current_date .. 
+    " | " .. mail_subject .. 
+    " | " .. email
+    M.writeLog(log)
+  end
   M.async(c,e,ctrl)
   vim.fn.execute("!rm -f " .. nvmm_options.options.tmp_folder .. email .. [[.*]])
+end
+
+-- Save infos in a log file
+
+function M.writeLog(line)
+  local file, err = io.open(nvmm_options.options.log_file, "a")
+  if not file then
+    print("[NVMM] Error opening log file:", err)
+    do return end
+  else
+    file:write(line .. "\n")
+    file:close()
+  end
 end
 
 -- Function async

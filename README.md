@@ -23,7 +23,10 @@ use { 'martineausimon/nvim-mail-merge',
       },
       options = {
         tmp_folder = "/tmp/nvmm/", 
-        neomutt_config = "$HOME/.neomuttrc"
+        neomutt_config = "$HOME/.neomuttrc",
+        save_log = true,
+        log_file = "./nvmm.log",
+        date_format = "%Y-%m-%d"
       }
     })
   end
@@ -77,3 +80,7 @@ The `:NVMMPreview` function (default mapping `<leader>p`) allows you to preview 
 ### 6) Send
 
 Run the function `:NVMMSendAll` (default mapping `<leader>sa`)
+
+### Log file
+
+By default, NVMM writes a log file `./nvmm.log` with the date, subject and recipient's email when sending all.

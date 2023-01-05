@@ -61,9 +61,13 @@ ucmd("NVMMPreview", function()
       border = "single"
     }
     local preview_buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_option(preview_buf, 'filetype', 'markdown')
     local lines = M.preview()
     vim.api.nvim_buf_set_lines(preview_buf, 0, -1, true, lines) 
     local preview_win = vim.api.nvim_open_win(preview_buf, true, opts)
+    vim.fn.matchadd("htmlH2", "TO:")
+    vim.fn.matchadd("htmlH2", "SUBJECT:")
+    vim.fn.matchadd("htmlH2", "ATTACHMENT:")
   end
 end, {})
 kmap(0, 'n', nvmm_options.mappings.preview, ":NVMMPreview<cr>", nrm)

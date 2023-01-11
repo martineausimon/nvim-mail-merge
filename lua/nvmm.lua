@@ -92,20 +92,25 @@ kmap(0, 'n', nvmm_options.mappings.attachment, ":NVMMAttachment<cr>", nrm)
 -- Lire les valeurs d'une ligne et d'une colonne d'un fichier csv
 
 function M.readValues(filename, row, col)
-  local file = io.open(filename, "r")
-  for i = 1, row do
-    local line = file:read()
-    if i == row then
-      local values = {}
-      if line == nil then do return end end
-      for value in line:gmatch("([^,]+)") do
-        table.insert(values, value)
-      end
-      file:close()
-      return values[col]
+    local file = io.open(filename, "r")
+    for i = 1, row do
+        local line = file:read()
+        if i == row then
+            local values = {}
+            if line == nil then do return end end
+            local _,m = line:gsub(",","")
+            for i = 1, m do
+              line = line:gsub("^,", "nvmm_nil,")
+              line = line:gsub(",,", ",nvmm_nil,")
+            end
+            for value in line:gmatch("([^,]+)") do
+              table.insert(values, value)
+            end
+            file:close()
+            return values[col]
+        end
     end
-  end
-  return nil
+    return nil
 end
 
 -- Lire une ligne du .csv (nom, ligne)
@@ -166,10 +171,19 @@ function M.cmpHeadersEntries(l)
   local file_content = M.storeMD(md)
   mail_subject = subject
   for n=1,#headers_table do
-    file_content = file_content:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
-    mail_subject = mail_subject:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
-    if attachment then
-      pj = attachment:gsub("%$" .. headers_table[n], M.readValues(csv,l,n))
+    local sub = M.readValues(csv,l,n)
+      if sub ~= "nvmm_nil" then
+      file_content = file_content:gsub("%$" .. headers_table[n], sub)
+      mail_subject = mail_subject:gsub("%$" .. headers_table[n], sub)
+      if attachment then
+        pj = attachment:gsub("%$" .. headers_table[n], sub)
+      end
+    else
+      file_content = file_content:gsub("%$" .. headers_table[n], "")
+      mail_subject = mail_subject:gsub("%$" .. headers_table[n], "")
+      if attachment then
+        pj = attachment:gsub("%$" .. headers_table[n], "")
+      end
     end
   end
   return file_content
@@ -184,9 +198,16 @@ function M.preview()
   local att = attachment or "<empty>"
   local email = M.readValues(csv,2,M.getMailPos(M.readLine(csv,1)))
   for n=1,#headers_table do
-    file_content = file_content:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
-    mail_subject = mail_subject:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
-    att = att:gsub("%$" .. headers_table[n], M.readValues(csv,2,n))
+    local sub = M.readValues(csv,2,n)
+    if sub ~= "nvmm_nil" then
+      file_content = file_content:gsub("%$" .. headers_table[n], sub)
+      mail_subject = mail_subject:gsub("%$" .. headers_table[n], sub)
+      att = att:gsub("%$" .. headers_table[n], sub)
+    else
+      file_content = file_content:gsub("%$" .. headers_table[n], "")
+      mail_subject = mail_subject:gsub("%$" .. headers_table[n], "")
+      att = att:gsub("%$" .. headers_table[n], "")
+    end
   end
   table.insert(lines, "-------------------")
   table.insert(lines, "TO:         " .. email)

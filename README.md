@@ -2,6 +2,8 @@
 
 **nvim-mail-merge** is a small mail merge plugin ([Neovim](https://github.com/neovim/neovim) only) that I made for my personal use. It allows to convert in `html` a mail written in `markdown` format containing variables, and to send it to a list from a `csv` file.
 
+For now, it works with [NeoMutt](https://github.com/neomutt), but I plan to integrate other cli email software later, feel free to open an issue if you are interested!
+
 ## Requirements
 
 This plugin requires [pandoc](https://github.com/jgm/pandoc) and [NeoMutt](https://github.com/neomutt) configured correctly.

@@ -25,7 +25,7 @@ end
 
 M.setup()
 
--- Variables, mappings & commandes
+-- Variables, mappings & commands
 
 local line_count   = 2
 local md     = vim.fn.expand("%")
@@ -44,6 +44,7 @@ ucmd("NVMMPreview", function()
       nvmm_options.mappings.config)
     do return end
   else
+    -- Floating window
     local screen_width, screen_height = vim.api.nvim_get_option("columns"), vim.api.nvim_get_option("lines")
     local demi_screen_width = math.floor(screen_width / 2)
     local demi_screen_height = math.floor(screen_height / 2)
@@ -65,6 +66,7 @@ ucmd("NVMMPreview", function()
     local lines = M.preview()
     vim.api.nvim_buf_set_lines(preview_buf, 0, -1, true, lines) 
     local preview_win = vim.api.nvim_open_win(preview_buf, true, opts)
+    -- Highlights in preview window
     vim.fn.matchadd("htmlH2", "TO:")
     vim.fn.matchadd("htmlH2", "SUBJECT:")
     vim.fn.matchadd("htmlH2", "ATTACHMENT:")
@@ -89,7 +91,7 @@ ucmd("NVMMAttachment", function()
 end, {})
 kmap(0, 'n', nvmm_options.mappings.attachment, ":NVMMAttachment<cr>", nrm)
 
--- Lire les valeurs d'une ligne et d'une colonne d'un fichier csv
+-- Read the values of a line and a column of a csv file
 
 function M.readValues(filename, row, col)
     local file = io.open(filename, "r")
@@ -100,6 +102,7 @@ function M.readValues(filename, row, col)
             if line == nil then do return end end
             local _,m = line:gsub(",","")
             for i = 1, m do
+              -- If empty data in csv
               line = line:gsub("^,", "nvmm_nil,")
               line = line:gsub(",,", ",nvmm_nil,")
             end
@@ -113,7 +116,7 @@ function M.readValues(filename, row, col)
     return nil
 end
 
--- Lire une ligne du .csv (nom, ligne)
+-- Read a line of .csv
 
 function M.readLine(filename,l)
     local file = io.open(filename, "r")
@@ -127,7 +130,7 @@ function M.readLine(filename,l)
     file:close()
 end
 
--- Connaitre la position de MAIL dans les headers
+-- Know the position of MAIL in the headers
 
 function M.getMailPos(h)
   local m = h:match("(.*MAIL)")
@@ -136,7 +139,7 @@ function M.getMailPos(h)
   return m
 end
 
--- Stocker les titres dans une table + Highlightings
+-- Store titles in a table + Highlightings
 
 function M.storeHeaders(h)
   local headers_count = 0
@@ -149,7 +152,7 @@ function M.storeHeaders(h)
   return headers
 end
 
--- Stocker le fichier md dans une variable :
+-- Store the md file in a variable :
 
 function M.storeMD(filename)
   local file = io.open(filename, "r")
@@ -165,7 +168,7 @@ function M.storeMD(filename)
   return file_content
 end
 
--- Modifie mdStored avec les valeurs de header_table :
+-- Modify mdStored with the values of header_table :
 
 function M.cmpHeadersEntries(l)
   local file_content = M.storeMD(md)
@@ -179,17 +182,17 @@ function M.cmpHeadersEntries(l)
         pj = attachment:gsub("%$" .. headers_table[n], sub)
       end
     else
-      file_content = file_content:gsub("%$" .. headers_table[n], "")
-      mail_subject = mail_subject:gsub("%$" .. headers_table[n], "")
+      file_content = file_content:gsub(" %$" .. headers_table[n], "")
+      mail_subject = mail_subject:gsub(" %$" .. headers_table[n], "")
       if attachment then
-        pj = attachment:gsub("%$" .. headers_table[n], "")
+        pj = attachment:gsub(" %$" .. headers_table[n], "")
       end
     end
   end
   return file_content
 end
 
--- Previsualiser le mail
+-- Preview the mail
 
 function M.preview()
   local lines = {}
@@ -204,9 +207,9 @@ function M.preview()
       mail_subject = mail_subject:gsub("%$" .. headers_table[n], sub)
       att = att:gsub("%$" .. headers_table[n], sub)
     else
-      file_content = file_content:gsub("%$" .. headers_table[n], "")
-      mail_subject = mail_subject:gsub("%$" .. headers_table[n], "")
-      att = att:gsub("%$" .. headers_table[n], "")
+      file_content = file_content:gsub(" %$" .. headers_table[n], "")
+      mail_subject = mail_subject:gsub(" %$" .. headers_table[n], "")
+      att = att:gsub(" %$" .. headers_table[n], "")
     end
   end
   table.insert(lines, "-------------------")
@@ -221,7 +224,7 @@ function M.preview()
   return lines
 end
 
--- Ecrire un fichier MD avec les valeurs contenues dans une ligne :
+-- Write a MD file with the values contained in a line and convert in html
 
 function M.sendAll()
   if not headers_table then
@@ -247,7 +250,7 @@ function M.sendAll()
   M.async(c,e,ctrl)
 end
 
--- Envoi complet :
+-- Full send :
 
 function M.send()
   if pj then
@@ -330,7 +333,7 @@ function M.async(c,e,ctrl)
     )
 end
 
--- Définir le fichier csv et l'objet du mail
+-- Define the csv file and the mail object
 
 function M.set()
   vim.api.nvim_command("silent! write")

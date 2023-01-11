@@ -6,7 +6,7 @@ For now, it works with [NeoMutt](https://github.com/neomutt), but I plan to inte
 
 ## Requirements
 
-This plugin requires [pandoc](https://github.com/jgm/pandoc) and [NeoMutt](https://github.com/neomutt) configured correctly.
+This plugin requires [pandoc](https://github.com/jgm/pandoc) and [NeoMutt](https://github.com/neomutt) configured correctly (see [.neomuttrc minimal example](https://github.com/martineausimon/nvim-mail-merge#neomuttrc-minimal-example)).
 
 ## Installation with config
 
@@ -86,3 +86,20 @@ Run the function `:NVMMSendAll` (default mapping `<leader>sa`)
 ### Log file
 
 By default, NVMM writes a log file `./nvmm.log` with the date, subject and recipient's email when sending all.
+
+### neomuttrc minimal example
+
+This config works with a Gmail account, and [pass](https://wiki.archlinux.org/title/Pass) to keep your password encrypted. With Gmail you'll also need an [app password](https://support.google.com/accounts/answer/185833?hl=en).
+
+Add this lines to your NeoMutt config file (default `$HOME/.neomuttrc`) :
+
+```bash
+set my_pass = `pass john.smith@gmail.com`
+set from = "john.smith@gmail.com"
+set realname = "John Smith"
+set imap_user = "john.smith@gmail.com"
+set imap_pass = $my_pass
+set smtp_url = "smtps://john.smith@smtp.gmail.com"
+set smtp_pass = $my_pass
+set copy = no
+```

@@ -44,7 +44,7 @@ ucmd("NVMMPreview", function()
       nvmm_options.mappings.config)
     do return end
   else
-    -- Floating window
+    -- Floating window for preview
     local screen_width, screen_height = vim.api.nvim_get_option("columns"), vim.api.nvim_get_option("lines")
     local demi_screen_width = math.floor(screen_width / 2)
     local demi_screen_height = math.floor(screen_height / 2)
@@ -75,7 +75,35 @@ end, {})
 kmap(0, 'n', nvmm_options.mappings.preview, ":NVMMPreview<cr>", nrm)
 
 ucmd("NVMMSendAll", function() 
+  if not headers_table then
+    print("[NVMM] Run config first with " .. 
+      nvmm_options.mappings.config)
+    do return end
+  end
+  -- create a tmp folder where md files are stored, then deleted
   vim.fn.mkdir(nvmm_options.options.tmp_folder, "p")
+  -- create floating window to follow the mails sent
+  sended = vim.api.nvim_create_buf(false, true)
+  local screen_width, screen_height = vim.api.nvim_get_option("columns"), vim.api.nvim_get_option("lines")
+  local demi_screen_width = math.floor(screen_width / 2)
+  local demi_screen_height = math.floor(screen_height / 2)
+  local w_width = math.floor(screen_width / 2)
+  local w_height = math.floor(screen_height / 2)
+  local x = math.floor(demi_screen_width - w_width / 2)
+  local y = math.floor(demi_screen_height - w_height / 2)
+  local opts = {
+    relative = "win",
+    width = w_width,
+    height = w_height,
+    col = x,
+    row = y,
+    style = "minimal",
+    border = "single"
+  }
+  vim.api.nvim_open_win(sended, true, opts)
+  vim.fn.matchadd("htmlH2", "SENT TO:")
+  m_sent = 1
+  vim.api.nvim_buf_set_lines(sended, 0, 0, false, { "SENT TO:" })
   M.sendAll() 
 end, {})
 kmap(0, 'n', nvmm_options.mappings.send_all, ":NVMMSendAll<cr>", nrm)
@@ -227,11 +255,6 @@ end
 -- Write a MD file with the values contained in a line and convert in html
 
 function M.sendAll()
-  if not headers_table then
-    print("[NVMM] Run config first with " .. 
-      nvmm_options.mappings.config)
-    do return end
-  end
   email = M.readValues(csv,line_count,M.getMailPos(M.readLine(csv,1))) or nil
   if email == nil then 
     print("[NVMM] No more mail to send.")
@@ -272,6 +295,9 @@ function M.send()
     local log = current_date .. 
     " | " .. mail_subject .. 
     " | " .. email
+    -- Print new line in floating window
+    vim.api.nvim_buf_set_lines(sended, -1, -1, false, { m_sent .. " | " .. email })
+    m_sent = m_sent + 1
     M.writeLog(log)
   end
   M.async(c,e,ctrl)
@@ -312,7 +338,6 @@ function M.async(c,e,ctrl)
       })
       vim.api.nvim_exec_autocmds("QuickFixCmdPost", {})
       if ctrl == "convert" then
-        print('[NVMM] Sending to ' .. email)
         M.send()
       elseif ctrl == "send" then
         line_count = line_count + 1

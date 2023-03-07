@@ -10,6 +10,32 @@ This plugin requires [pandoc](https://github.com/jgm/pandoc) and [NeoMutt](https
 
 ## Installation with config
 
+### [lazy.nvim](https://github.com/folke/lazy.nvim)
+
+```lua 
+{ 
+  'martineausimon/nvim-mail-merge',
+  ft = { 'markdown' },
+  config = function()
+    require('nvmm').setup({
+      mappings = {
+        attachment = "<leader>a",
+        config = "<leader>c",
+        preview = "<leader>p",
+        send_all = "<leader>sa"
+      },
+      options = {
+        tmp_folder = "/tmp/nvmm/", 
+        neomutt_config = "$HOME/.neomuttrc",
+        save_log = true,
+        log_file = "./nvmm.log",
+        date_format = "%Y-%m-%d"
+      }
+    })
+  end
+}
+```
+
 ### [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua

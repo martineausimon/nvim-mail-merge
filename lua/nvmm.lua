@@ -336,7 +336,7 @@ function M.async(c,e,ctrl)
         lines = lines,
         efm = e,
       })
-      vim.api.nvim_exec_autocmds("QuickFixCmdPost", {})
+      --vim.api.nvim_exec_autocmds("QuickFixCmdPost", {})
       if ctrl == "convert" then
         M.send()
       elseif ctrl == "send" then

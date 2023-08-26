@@ -1,32 +1,51 @@
 # nvim-mail-merge
 
-**nvim-mail-merge** is a small mail merge plugin ([Neovim](https://github.com/neovim/neovim) only) that I made for my personal use. It allows to convert in `html` a mail written in `markdown` format containing variables, and to send it to a list from a `csv` file.
+**nvim-mail-merge** is a small mail merge plugin for ([Neovim](https://github.com/neovim/neovim). It is primarily designed to work with [NeoMutt](https://github.com/neomutt) by default but also offers support for [mailx](https://linux.die.net/man/1/mailx). This plugin can send emails in either HTML format (exclusive to Neomutt) or plain text.
 
-For now, it works with [NeoMutt](https://github.com/neomutt), but I plan to integrate other cli email software later, feel free to open an issue if you are interested!
+## FEATURES
 
-## Requirements
+* **Create an individual and personalized message for each recipient of a .csv file**:  
+Prepare a `.csv` file including the `MAIL` field along with variables of your choice. The `nvim-mail-merge` tool automatically fills in the information based on your values for personalized emails.
+* **Converts and sends an email written in Markdown to HTML format**:  
+Write your email using the standard Markdown syntax. The `nvim-mail-merge` tool converts it to HTML format for optimal formatting of your message (`neomutt` only).
+* **Sends plain text format emails** using either `neomutt` or `mailx`.
+* **Preview** the fully merged email before sending to ensure everything looks as expected.
+* **Save the history of sent emails** (date, subject, email)
+* **Monitor the progress of deliveries and view encountered errors** in the quickfix window.
 
-This plugin requires [pandoc](https://github.com/jgm/pandoc) and [NeoMutt](https://github.com/neomutt) configured correctly (see [.neomuttrc minimal example](https://github.com/martineausimon/nvim-mail-merge#neomuttrc-minimal-example)).
+## REQUIREMENTS
 
-## Installation with config
+This plugin requires :
+
+* [pandoc](https://github.com/jgm/pandoc) for HTML format emails
+* [NeoMutt](https://github.com/neomutt) configured correctly (see [.neomuttrc minimal example](https://github.com/martineausimon/nvim-mail-merge#neomuttrc-minimal-example))
+* For plain text format emails, you also have the option to use [mailx](https://linux.die.net/man/1/mailx), which might be faster
+
+## INSTALLATION WITH CONFIG
 
 ### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua 
 { 
   'martineausimon/nvim-mail-merge',
-  ft = { 'markdown' },
+  ft = { 'markdown' }, --optional
   config = function()
     require('nvmm').setup({
       mappings = {
         attachment = "<leader>a",
         config = "<leader>c",
         preview = "<leader>p",
-        send_all = "<leader>sa"
+        send_text = "<leader>st",
+        send_html = "<leader>sh",
       },
       options = {
-        tmp_folder = "/tmp/nvmm/", 
+        mail_client = {
+          text = "neomutt", -- or "mailx"
+          html = "neomutt"
+        },
+        auto_break_md = true, -- line breaks without two spaces for markdown
         neomutt_config = "$HOME/.neomuttrc",
+        mailx_account = nil, -- if you use different accounts in .mailrc
         save_log = true,
         log_file = "./nvmm.log",
         date_format = "%Y-%m-%d"
@@ -36,32 +55,16 @@ This plugin requires [pandoc](https://github.com/jgm/pandoc) and [NeoMutt](https
 }
 ```
 
-### [packer.nvim](https://github.com/wbthomason/packer.nvim)
+To monitor the progress of deliveries and view encountered errors, you can manually open quickfix with `:copen` (see [:h quickfix](https://vimhelp.org/quickfix.txt.html#quickfix)), or add this autocommand to your `init.lua` :
 
 ```lua
-use { 'martineausimon/nvim-mail-merge',
-  ft = { 'markdown' },
-  config = function()
-    require('nvmm').setup({
-      mappings = {
-        attachment = "<leader>a",
-        config = "<leader>c",
-        preview = "<leader>p",
-        send_all = "<leader>sa"
-      },
-      options = {
-        tmp_folder = "/tmp/nvmm/", 
-        neomutt_config = "$HOME/.neomuttrc",
-        save_log = true,
-        log_file = "./nvmm.log",
-        date_format = "%Y-%m-%d"
-      }
-    })
-  end
-}
+vim.api.nvim_create_autocmd('QuickFixCmdPost', { 
+  command = "cwindow",
+  pattern = "*"
+})
 ```
 
-## Usage
+## USAGE
 
 ### 1) Create a .csv file containing the data of each contact
 
@@ -71,9 +74,9 @@ example : `/home/user/list.csv`
 
 ```csv
 CIV,LASTNAME,FIRSTNAME,MAIL
-M.,Doe,John,john.doe@example.com
-Mrs.,Smith,Jane,jane.smith@example.com
-M.,Cohn,Bob,bob.cohn@example.com
+M.,Tyner,Mc Coy,mccoy.tyner@gmail.com
+Mrs.,Garrison,Jimmy,jimmy.garrison@caramail.com
+M.,Jones,Elvin,elvin.jones@yahoo.com
 ```
 ### 2) Write a template mail in markdown in NeoVim
 
@@ -84,14 +87,12 @@ example : `nvim ~/template.md`
 ```markdown
 Hello $CIV $LASTNAME,
 
-[Your message]
+Your message
 
 Best regards,
 
-[Your name]
+Your name
 ```
-
-**note : line breaks are automatic, and do not require two spaces.**
 
 ### 3) Configure the mail merge
 
@@ -103,15 +104,18 @@ Run `:NVMMAttachment` (default mapping `<leader>a`) to add attachment to your ma
 
 ### 5) Preview the sending
 
-The `:NVMMPreview` function (default mapping `<leader>p`) allows you to preview the sending with the data of the second line of the csv file.
+The `:NVMMPreview` function (default mapping `<leader>p`) allows you to preview the sending with the data of the first recipient of the csv file.
 
 ### 6) Send
 
-Run the function `:NVMMSendAll` (default mapping `<leader>sa`)
+Run one of the following commands :
+
+`:NVMMSendText` (default `<leader>st`)  
+`:NVMMSentHtml` (default `<leader>sh`)
 
 ### Log file
 
-By default, NVMM writes a log file `./nvmm.log` with the date, subject and recipient's email when sending all.
+By default, NVMM writes a log file `./nvmm.log` with the date, format (text or html), subject and recipient's email when sending all.
 
 ### neomuttrc minimal example
 
@@ -120,12 +124,50 @@ This config works with a Gmail account, and [pass](https://wiki.archlinux.org/ti
 Add this lines to your NeoMutt config file (default `$HOME/.neomuttrc`) :
 
 ```bash
-set my_pass = `pass john.smith@gmail.com`
-set from = "john.smith@gmail.com"
-set realname = "John Smith"
-set imap_user = "john.smith@gmail.com"
+set my_pass = `pass eric.dolphy@gmail.com`
+set from = "eric.dolphy@gmail.com"
+set realname = "Eric Dolphy"
+set imap_user = "eric.dolphy@gmail.com"
 set imap_pass = $my_pass
-set smtp_url = "smtps://john.smith@smtp.gmail.com"
+set smtp_url = "smtps://eric.dolphy@smtp.gmail.com"
 set smtp_pass = $my_pass
 set copy = no
+```
+
+### mailx minimal config example
+
+This config works with a Gmail account. With Gmail you'll also need an [app password](https://support.google.com/accounts/answer/185833?hl=en).
+
+Add this lines to your mailx config file (`$HOME/.mailrc`) :
+
+* one account :
+
+```bash
+set v15-compat
+set from="jim.hall@gmail.com(Jim Hall)"
+set smtp-use-starttls
+set smtp-auth=login
+set mta=smtps://jim.hall:<app_password>@smtp.gmail.com:465
+```
+
+* multiple accounts :  
+
+Don't forget to set `mailx_account` in `setup()` function
+
+```bash
+account main {
+  set v15-compat
+  set from="jim.hall@gmail.com(Jim Hall)"
+  set smtp-use-starttls
+  set smtp-auth=login
+  set mta=smtps://jim.hall:<app_password>@smtp.gmail.com:465
+}
+
+account anotheraccount {
+  set v15-compat
+  set from="ron.carter@gmail.com(Ron Carter)"
+  set smtp-use-starttls
+  set smtp-auth=login
+  set mta=smtps://ron.carter:<app_password>@smtp.gmail.com:465
+}
 ```

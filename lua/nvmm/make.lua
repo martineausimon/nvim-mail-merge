@@ -92,7 +92,13 @@ function M.send(type, subject, content, to, n)
     attachment = ""
   end
 
-  local make = string.format([[cat %s | %s -s %q %s%s]], tmpfile, cmd, subject, to, attachment)
+  local text_client = Config.options.options.mail_client.text
+  local make
+  if type == "text" and (text_client == "mailx" or text_client == "mail") then
+    make = string.format([[cat %s | %s -s %q%s %s]], tmpfile, cmd, subject, attachment, to)
+  else
+    make = string.format([[cat %s | %s -s %q %s%s]], tmpfile, cmd, subject, to, attachment)
+  end
 
   vim.fn.jobstart(make, {
     on_exit = exit(to, subject, tmpfile, type, n)

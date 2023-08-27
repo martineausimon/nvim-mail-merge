@@ -12,9 +12,9 @@ local function exit(to, subject, tmpfile, type, n)
       if config.options.save_log then
         Utils.write_log(type, subject, to)
       end
-      Utils.write_to_quickfix("i", "Mail <" .. subject .. "> sent successfully to " .. to, n)
+      Utils.write_to_quickfix('i', 'Mail "' .. subject .. '" sent successfully to ' .. to, n)
     else
-      Utils.write_to_quickfix("e", "Mail not sent.", n)
+      Utils.write_to_quickfix('e', 'Mail not sent.', n)
     end
     os.remove(tmpfile)
   end
@@ -39,10 +39,10 @@ local function send_cmd(mode)
         table.insert(args, " -A " .. config.options.mailx_account)
       end
     elseif not mail_client.text then
-      Utils.message("No email client specified for text mails", "WARN")
+      Utils.message('No email client specified for text mails', 'WARN')
       return
     else
-      Utils.message(('Unknow mail client for text mails (%s)'):format(mail_client.text), "WARN")
+      Utils.message(('Unknow mail client for text mails (%s)'):format(mail_client.text), 'WARN')
       return
     end
   elseif mode == "html" then
@@ -68,7 +68,7 @@ function M.send(type, subject, content, to, n)
     Utils.write_to_quickfix("e", "This line doesn't contain an email", n)
     if Config.options.options.save_log then
       local message = "LINE " .. n .. " DOESN'T CONTAIN EMAIL"
-      Utils.write_log("type", subject, message)
+      Utils.write_log(type, subject, message)
     end
     return
   end
@@ -85,9 +85,11 @@ function M.send(type, subject, content, to, n)
   local attachment = Config.attachment()
 
   if attachment then
-    local csv = Config.csv()
-    local att = M.merge(attachment, csv, n)
-    attachment = ' -a ' .. att
+    if n ~= 0 then
+      local csv = Config.csv()
+      local att = M.merge(attachment, csv, n)
+      attachment = ' -a ' .. att
+    end
   else
     attachment = ""
   end

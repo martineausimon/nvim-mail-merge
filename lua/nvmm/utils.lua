@@ -40,8 +40,14 @@ local qf_lines = {}
 -- A AMÉLIORER : PLUTÔT QUE #QF_LINES + 1, UTILISER LA LIGNE DU FICHIER CSV
 
 function M.write_to_quickfix(type, message, n)
-  local _, csv = require('nvmm.config').csv()
-  table.insert(qf_lines, csv .. ":" .. n .. ":" .. type .. ":" .. message)
+  local file
+  if n == 0 then
+    file = vim.fn.expand('%')
+  else
+    local _, csv = require('nvmm.config').csv()
+    file = csv
+  end
+  table.insert(qf_lines, file .. ":" .. n .. ":" .. type .. ":" .. message)
   vim.fn.setqflist({}, " ", {
     title = "nvim-mail-merge",
     lines = qf_lines,

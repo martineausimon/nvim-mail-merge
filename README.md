@@ -66,7 +66,17 @@ vim.api.nvim_create_autocmd('QuickFixCmdPost', {
 
 ## USAGE
 
-### 1) Create a .csv file containing the data of each contact
+### DIRECT SEND
+
+This plugin can directly send the buffer to specified recipient(s) (comma separated emails if several) with these commands :
+
+`:NVMMSendText charlie.haden@aol.com,paul.motian@yahoo.fr` (send the buffer in plain text format)  
+
+`:NVMMSendHtml charlie.haden@aol.com,paul.motian@yahoo.fr` (convert buffer from markdown to html and send)
+
+### MAIL MERGE
+
+#### 1) Create a .csv file containing the data of each contact
 
 ⚠ The first line of this file must contain the headers, and one of the headers must be exactly `MAIL` (containing the email address)
 
@@ -78,7 +88,7 @@ M.,Tyner,Mc Coy,mccoy.tyner@gmail.com
 Mrs.,Garrison,Jimmy,jimmy.garrison@caramail.com
 M.,Jones,Elvin,elvin.jones@yahoo.com
 ```
-### 2) Write a template mail in markdown in NeoVim
+#### 2) Write a template mail in markdown in NeoVim
 
 Variables must be preceded by the symbol `$`
 
@@ -94,28 +104,30 @@ Best regards,
 Your name
 ```
 
-### 3) Configure the mail merge
+#### 3) Configure the mail merge
 
 In NeoVim, run the command `:NVMMConfig` (default mapping `<leader>c`) and enter the exact path of the csv file, then the subject of the mail. The subject can contain variables, always preceded by the symbol `$`.
 
-### 4) Add attachment (optional)
+#### 4) Add attachment (optional)
 
 Run `:NVMMAttachment` (default mapping `<leader>a`) to add attachment to your mail. It can be a complete path (e.g. `/home/user/file.pdf`) or a variable, completed from your csv file content (e.g. : `$ATT`).
 
-### 5) Preview the sending
+#### 5) Preview the sending
 
 The `:NVMMPreview` function (default mapping `<leader>p`) allows you to preview the sending with the data of the first recipient of the csv file.
 
-### 6) Send
+#### 6) Send
 
 Run one of the following commands :
 
 `:NVMMSendText` (default `<leader>st`)  
 `:NVMMSentHtml` (default `<leader>sh`)
 
-### Log file
+#### Log file
 
 By default, NVMM writes a log file `./nvmm.log` with the date, format (text or html), subject and recipient's email when sending all.
+
+## TIPS AND TRICKS
 
 ### neomuttrc minimal example
 

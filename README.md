@@ -1,13 +1,13 @@
 # nvim-mail-merge
 
-**nvim-mail-merge** is a small mail merge plugin for ([Neovim](https://github.com/neovim/neovim). It is primarily designed to work with [NeoMutt](https://github.com/neomutt) by default but also offers support for [mailx](https://linux.die.net/man/1/mailx). This plugin can send emails in either HTML format (exclusive to Neomutt) or plain text.
+**nvim-mail-merge** is a small mail merge plugin for [Neovim](https://github.com/neovim/neovim). It is primarily designed to work with [NeoMutt](https://github.com/neomutt) by default but also offers support for [mailx](https://linux.die.net/man/1/mailx). This plugin can send emails in either HTML format (`neomutt` only) or plain text.
 
 ## FEATURES
 
 * **Create an individual and personalized message for each recipient of a .csv file**:  
-Prepare a `.csv` file including the `MAIL` field along with variables of your choice. The `nvim-mail-merge` tool automatically fills in the information based on your values for personalized emails.
+Prepare a `.csv` file including the `MAIL` field along with variables of your choice. `nvim-mail-merge` automatically fills in the information based on your values for personalized emails.
 * **Converts and sends an email written in Markdown to HTML format**:  
-Write your email using the standard Markdown syntax. The `nvim-mail-merge` tool converts it to HTML format for optimal formatting of your message (`neomutt` only).
+Write your email using the standard Markdown syntax. `nvim-mail-merge` converts it to HTML format for optimal formatting of your message (`neomutt` only).
 * **Sends plain text format emails** using either `neomutt` or `mailx`.
 * **Preview** the fully merged email before sending to ensure everything looks as expected.
 * **Save the history of sent emails** (date, subject, email)

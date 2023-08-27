@@ -53,7 +53,7 @@ end
 function M.content(file_path)
   local file = io.open(file_path, "r")
   if not file then
-    Utils.message('[NVMM] Failed to open file: ' .. file_path, 'WARN')
+    Utils.message('Failed to open file: ' .. file_path, 'WARN')
   else
     local content = file:read("*all")
     file:close()

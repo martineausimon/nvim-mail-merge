@@ -159,7 +159,7 @@ set v15-compat
 set from="jim.hall@gmail.com(Jim Hall)"
 set smtp-use-starttls
 set smtp-auth=login
-set mta=smtps://jim.hall:<app_password>@smtp.gmail.com:465
+set mta=smtps://jim.hall:app_password@smtp.gmail.com:465
 ```
 
 * multiple accounts :  
@@ -172,7 +172,7 @@ account main {
   set from="jim.hall@gmail.com(Jim Hall)"
   set smtp-use-starttls
   set smtp-auth=login
-  set mta=smtps://jim.hall:<app_password>@smtp.gmail.com:465
+  set mta=smtps://jim.hall:app_password@smtp.gmail.com:465
 }
 
 account anotheraccount {
@@ -180,6 +180,6 @@ account anotheraccount {
   set from="ron.carter@gmail.com(Ron Carter)"
   set smtp-use-starttls
   set smtp-auth=login
-  set mta=smtps://ron.carter:<app_password>@smtp.gmail.com:465
+  set mta=smtps://ron.carter:app_password@smtp.gmail.com:465
 }
 ```

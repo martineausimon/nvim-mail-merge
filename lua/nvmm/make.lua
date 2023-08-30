@@ -121,9 +121,9 @@ function M.markdown_to_html(md)
   tmp_md_file:close()
 
   local metadatas = {
-    "title=' '",
-    "margin-top=0",
-    "main-font=sans-serif"
+    [['title= ']],
+    [['margin-top=0']],
+    [['mainfont: sans-serif']]
   }
 
   local meta = table.concat(metadatas, " --metadata ")

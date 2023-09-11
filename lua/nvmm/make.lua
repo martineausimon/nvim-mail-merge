@@ -87,9 +87,9 @@ function M.send(type, subject, content, to, n)
   if attachment then
     if n ~= 0 then
       local csv = Config.csv()
-      local att = M.merge(attachment, csv, n)
-      attachment = ' -a ' .. att
+      attachment = M.merge(attachment, csv, n)
     end
+    attachment = ' -a ' .. attachment
   else
     attachment = ""
   end

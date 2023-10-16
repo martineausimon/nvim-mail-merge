@@ -54,6 +54,7 @@ end
 
 vim.api.nvim_create_user_command("NVMMSendText",
   function(args)
+    vim.fn.execute('write')
     local Make   = require('nvmm.make')
     local Csv    = require('nvmm.csv')
     local content = io.open(vim.fn.expand('%'), "r"):read("*a")
@@ -96,6 +97,7 @@ vim.api.nvim_create_user_command("NVMMSendText",
 
 vim.api.nvim_create_user_command("NVMMSendHtml",
   function(args)
+    vim.fn.execute('write')
     local Make   = require('nvmm.make')
     local Csv    = require('nvmm.csv')
     local content = Make.markdown_to_html(vim.fn.expand('%'))
@@ -139,6 +141,7 @@ vim.api.nvim_create_user_command("NVMMSendHtml",
 
 vim.api.nvim_create_user_command("NVMMPreview",
   function()
+    vim.fn.execute('write')
     local Csv    = require('nvmm.csv')
     local csv = Config.csv()
     if not csv then return end

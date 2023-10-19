@@ -120,13 +120,7 @@ function M.markdown_to_html(md)
 
   tmp_md_file:close()
 
-  local metadatas = {
-    [['title= ']],
-    [['margin-top=0']],
-    [['mainfont: sans-serif']]
-  }
-
-  local meta = table.concat(metadatas, " --metadata ")
+  local meta = table.concat(config.options.pandoc_metadatas, " --metadata ")
 
   local cmd = string.format("pandoc %s -s -f markdown -t html5 --metadata %s", tmp_md_path, meta)
 

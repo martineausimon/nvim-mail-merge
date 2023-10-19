@@ -23,7 +23,15 @@ function M.defaults()
       mailx_account = nil,
       save_log = true,
       log_file = "./nvmm.log",
-      date_format = "%Y-%m-%d"
+      date_format = "%Y-%m-%d",
+      pandoc_metadatas = {
+        [['title= ']],
+        [['margin-top=0']],
+        [['margin-left=0']],
+        [['margin-right=0']],
+        [['margin-bottom=0']],
+        [['mainfont: sans-serif']]
+      }
     }
   }
   return defaults

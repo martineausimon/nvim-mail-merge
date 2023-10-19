@@ -48,7 +48,15 @@ This plugin requires :
         mailx_account = nil, -- if you use different accounts in .mailrc
         save_log = true,
         log_file = "./nvmm.log",
-        date_format = "%Y-%m-%d"
+        date_format = "%Y-%m-%d",
+        pandoc_metadatas = { -- syntax with [['metadata']] is important
+          [['title= ']],
+          [['margin-top=0']],
+          [['margin-left=0']],
+          [['margin-right=0']],
+          [['margin-bottom=0']],
+          [['mainfont: sans-serif']]
+        }
       }
     })
   end

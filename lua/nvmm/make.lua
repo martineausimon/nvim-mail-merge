@@ -102,9 +102,13 @@ function M.send(type, subject, content, to, n)
     make = string.format([[cat %s | %s -s %q %s%s]], tmpfile, cmd, subject, to, attachment)
   end
 
-  vim.fn.jobstart(make, {
-    on_exit = exit(to, subject, tmpfile, type, n)
-  })
+  local function send_with_delay()
+    vim.fn.jobstart(make, {
+      on_exit = exit(to, subject, tmpfile, type, n)
+    })
+  end
+
+  vim.defer_fn(send_with_delay, 4000)
 end
 
 function M.markdown_to_html(md)

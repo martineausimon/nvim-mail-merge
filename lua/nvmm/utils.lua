@@ -2,7 +2,10 @@ local M = {}
 
 function M.message(str, level)
   level = level or "INFO"
-  vim.notify("[NVMM] " .. str, vim.log.levels[level], {})
+  vim.schedule(function()
+    vim.notify("[NVMM] " .. str, vim.log.levels[level], {})
+	end)
+
 end
 
 function M.shellescape(content)
@@ -36,8 +39,6 @@ function M.write_log(type, subject, message)
 end
 
 local qf_lines = {}
-
--- A AMÉLIORER : PLUTÔT QUE #QF_LINES + 1, UTILISER LA LIGNE DU FICHIER CSV
 
 function M.write_to_quickfix(type, message, n)
   local file

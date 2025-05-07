@@ -1,66 +1,24 @@
-Csv = require('nvmm.csv')
-Utils = require('nvmm.utils')
-Config = require('nvmm.config')
-config = Config.options
-local mail_client = config.options.mail_client
+local Csv = require('nvmm.csv')
+local Utils = require('nvmm.utils')
+local Job = require('nvmm.job')
+local Config = require('nvmm.config')
+local config = Config.options
 
 local M = {}
 
-local function exit(to, subject, tmpfile, type, n)
-  return function(_, code)
-    if code == 0 then
-      if config.options.save_log then
-        Utils.write_log(type, subject, to)
+local function exit(to, subject, type, n)
+  return function(result)
+    vim.schedule(function()
+      if result.code == 0 then
+        if config.options.save_log then
+          Utils.write_log(type, subject, to)
+        end
+        Utils.write_to_quickfix('i', 'Mail "' .. subject .. '" sent successfully to ' .. to, n)
+      else
+        Utils.write_to_quickfix('e', 'Mail not sent to ' .. to, n)
       end
-      Utils.write_to_quickfix('i', 'Mail "' .. subject .. '" sent successfully to ' .. to, n)
-    else
-      Utils.write_to_quickfix('e', 'Mail not sent.', n)
-    end
-    os.remove(tmpfile)
+    end)
   end
-end
-
-local function send_cmd(mode)
-  local args = {}
-  if mode == "text" then
-    if mail_client.text == "neomutt" then
-      if config.options.neomutt_config then
-        table.insert(args, " -F " .. config.options.neomutt_config)
-      end
-      local options = {
-        'set content_type=text/plain',
-        'set send_charset=utf-8',
-        'set copy=no'
-      }
-      local opts = table.concat(options, '" -e "')
-      table.insert(args, ' -e "' .. opts ..'"')
-    elseif mail_client.text == "mail" or mail_client.text == "mailx" then
-      if config.options.mailx_account then
-        table.insert(args, " -A " .. config.options.mailx_account)
-      end
-    elseif not mail_client.text then
-      Utils.message('No email client specified for text mails', 'WARN')
-      return
-    else
-      Utils.message(('Unknow mail client for text mails (%s)'):format(mail_client.text), 'WARN')
-      return
-    end
-  elseif mode == "html" then
-    if mail_client.html == "neomutt" then
-      if config.options.neomutt_config then
-        table.insert(args, " -F " .. config.options.neomutt_config)
-      end
-      local options = {
-        'set content_type=text/html',
-        'set copy=no'
-      }
-      local opts = table.concat(options, '" -e "')
-      table.insert(args, '-e "' .. opts ..'"')
-    end
-  end
-  local string_args = table.concat(args, ' ')
-  local cmd = string.format('%s%s', mail_client[mode], string_args)
-  return cmd
 end
 
 function M.send(type, subject, content, to, n)
@@ -73,42 +31,69 @@ function M.send(type, subject, content, to, n)
     return
   end
 
-  local tmpfile = vim.fn.tempname()
-  local file = io.open(tmpfile, "w")
-  if not file then return end
-
-  file:write(content)
-  file:close()
-
-  local cmd = send_cmd(type)
-
   local attachment = Config.attachment()
-
   if attachment then
     if n ~= 0 then
       local csv = Config.csv()
       attachment = M.merge(attachment, csv, n)
     end
-    attachment = ' -a ' .. attachment
   else
     attachment = ""
   end
 
-  local text_client = Config.options.options.mail_client.text
-  local make
-  if type == "text" and (text_client == "mailx" or text_client == "mail") then
-    make = string.format([[cat %s | %s -s %q%s %s]], tmpfile, cmd, subject, attachment, to)
+  local text_client = config.options.mail_client.text
+  local html_client = config.options.mail_client.html
+  local client = (type == "text") and text_client or html_client
+
+  if client == "mailx" or client == "mail" then
+    local mailx_args = { "-s", subject }
+
+    if attachment ~= "" then
+      table.insert(mailx_args, "-a")
+      table.insert(mailx_args, attachment)
+    end
+
+    if config.options.mailx_account then
+      table.insert(mailx_args, 1, config.options.mailx_account)
+      table.insert(mailx_args, 1, "-A")
+    end
+
+    table.insert(mailx_args, to)
+
+    Job:add(client, mailx_args, exit(to, subject, type, n), content)
+
+  elseif client == "neomutt" then
+    local neomutt_args = {}
+
+    if config.options.neomutt_config then
+      table.insert(neomutt_args, "-F")
+      table.insert(neomutt_args, config.options.neomutt_config)
+    end
+
+    local opts = {
+      type == "html" and 'set content_type=text/html' or 'set content_type=text/plain',
+      'set copy=no'
+    }
+
+    table.insert(neomutt_args, "-e")
+    table.insert(neomutt_args, table.concat(opts, "; "))
+
+    table.insert(neomutt_args, "-s")
+    table.insert(neomutt_args, subject)
+
+    if attachment ~= "" then
+      table.insert(neomutt_args, "-a")
+      table.insert(neomutt_args, attachment)
+    end
+
+    table.insert(neomutt_args, "--")
+    table.insert(neomutt_args, to)
+
+    Job:add("neomutt", neomutt_args, exit(to, subject, type, n), content)
+
   else
-    make = string.format([[cat %s | %s -s %q %s%s]], tmpfile, cmd, subject, to, attachment)
+    Utils.message(string.format("Unknown mail client: %s", client), "ERROR")
   end
-
-  local function send_with_delay()
-    vim.fn.jobstart(make, {
-      on_exit = exit(to, subject, tmpfile, type, n)
-    })
-  end
-
-  vim.defer_fn(send_with_delay, 4000)
 end
 
 function M.markdown_to_html(md)
